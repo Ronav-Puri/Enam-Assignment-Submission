@@ -1,0 +1,28 @@
+{
+  "portfolio": [
+    { "symbol": "RELIANCE",   "name": "Reliance Industries",            "sector": "Conglomerate",           "size": "large", "bse_code": "500325" },
+    { "symbol": "TCS",        "name": "Tata Consultancy Services",      "sector": "IT Services",            "size": "large", "bse_code": "532540" },
+    { "symbol": "INFY",       "name": "Infosys",                        "sector": "IT Services",            "size": "large", "bse_code": "500209" },
+    { "symbol": "KPITTECH",   "name": "KPIT Technologies",              "sector": "Automotive Software",    "size": "mid",   "bse_code": "542651" },
+    { "symbol": "HDFCBANK",   "name": "HDFC Bank",                      "sector": "Banking",                "size": "large", "bse_code": "500180" },
+    { "symbol": "ICICIBANK",  "name": "ICICI Bank",                     "sector": "Banking",                "size": "large", "bse_code": "532174" },
+    { "symbol": "BAJFINANCE", "name": "Bajaj Finance",                  "sector": "NBFC",                   "size": "large", "bse_code": "500034" },
+    { "symbol": "CHOLAFIN",   "name": "Cholamandalam Investment",       "sector": "NBFC",                   "size": "large", "bse_code": "511243" },
+    { "symbol": "SUNPHARMA",  "name": "Sun Pharmaceutical Industries",  "sector": "Pharma",                 "size": "large", "bse_code": "524715" },
+    { "symbol": "APOLLOHOSP", "name": "Apollo Hospitals",               "sector": "Healthcare Services",    "size": "large", "bse_code": "508869" },
+    { "symbol": "MARUTI",     "name": "Maruti Suzuki India",            "sector": "Automobiles",            "size": "large", "bse_code": "532500" },
+    { "symbol": "TITAN",      "name": "Titan Company",                  "sector": "Consumer / Jewellery",   "size": "large", "bse_code": "500114" },
+    { "symbol": "DMART",      "name": "Avenue Supermarts (DMart)",      "sector": "Retail",                 "size": "large", "bse_code": "540376" },
+    { "symbol": "LT",         "name": "Larsen & Toubro",                "sector": "Infrastructure / EPC",   "size": "large", "bse_code": "500510" },
+    { "symbol": "HAL",        "name": "Hindustan Aeronautics",          "sector": "Defence",                "size": "large", "bse_code": "541154" },
+    { "symbol": "DIXON",      "name": "Dixon Technologies",             "sector": "Electronics Mfg",        "size": "mid",   "bse_code": "540699" },
+    { "symbol": "PIIND",      "name": "PI Industries",                  "sector": "Agrochem / Specialty Chem", "size": "mid", "bse_code": "523642" },
+    { "symbol": "DEEPAKNTR",  "name": "Deepak Nitrite",                 "sector": "Specialty Chemicals",    "size": "mid",   "bse_code": "506401" }
+  ],
+  "research": [
+    { "symbol": "PERSISTENT", "name": "Persistent Systems",             "sector": "IT Services",            "size": "mid",   "bse_code": "533179" },
+    { "symbol": "TATAELXSI",  "name": "Tata Elxsi",                     "sector": "Design & Engineering",   "size": "mid",   "bse_code": "500408" },
+    { "symbol": "AUBANK",     "name": "AU Small Finance Bank",          "sector": "Banking",                "size": "mid",   "bse_code": "540611" },
+    { "symbol": "POLYCAB",    "name": "Polycab India",                  "sector": "Cables & Wires",         "size": "mid",   "bse_code": "542652" }
+  ]
+}

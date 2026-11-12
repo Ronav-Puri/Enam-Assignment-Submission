@@ -1,0 +1,16 @@
+# secrets
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# node / next.js (for later)
+node_modules/
+.next/
+
+# local downloads (PDFs etc.)
+data/cache/
+
+.DS_Store
