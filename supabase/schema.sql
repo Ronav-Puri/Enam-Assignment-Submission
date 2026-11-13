@@ -12,3 +12,15 @@ select
           partition by symbol order by date rows between 20 preceding and 1 preceding), 0), 2) as volume_ratio
 from prices
 window w as (partition by symbol order by date);
+
+-- Each investor's own alert rules (private to them)
+create table if not exists preferences (
+  owner_id          uuid primary key references auth.users(id) on delete cascade,
+  price_move_pct    numeric not null default 4,
+  volume_multiple   numeric not null default 2,
+  alert_categories  text[]  not null default '{results,M&A,management_change,litigation,fund_raise}',
+  updated_at        timestamptz default now()
+);
+alter table preferences enable row level security;
+create policy "own preferences" on preferences for all to authenticated
+  using (owner_id = auth.uid()) with check (owner_id = auth.uid());
