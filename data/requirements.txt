@@ -4,3 +4,4 @@ beautifulsoup4>=4.12
 python-dotenv>=1.0
 supabase>=2.5
 google-genai>=1.0
+pypdf>=4.0
