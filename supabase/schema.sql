@@ -24,3 +24,15 @@ create table if not exists preferences (
 alter table preferences enable row level security;
 create policy "own preferences" on preferences for all to authenticated
   using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+  -- Saved research reports (public-market analysis, not personal data): any logged-in user can read;
+-- only the server (secret key) writes.
+create table if not exists research (
+  symbol        text primary key,
+  name          text,
+  generated_at  timestamptz default now(),
+  model         text,
+  report        jsonb not null
+);
+alter table research enable row level security;
+create policy "logged-in users read research" on research for select to authenticated using (true);

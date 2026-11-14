@@ -75,3 +75,57 @@ export const DEFAULT_PREFS: Prefs = {
   volume_multiple: 2,
   alert_categories: ["results", "M&A", "management_change", "litigation", "fund_raise"],
 };
+
+// ---------- Research ----------
+export interface NumRow {
+  period: string;
+  sales: number | null;
+  op_profit: number | null;
+  opm: number | null;
+  net_profit: number | null;
+}
+
+export interface Metrics {
+  is_financial: boolean;
+  quarterly: NumRow[];
+  annual: NumRow[];
+  ttm: NumRow | null;
+  sales_cagr: number | null;
+  profit_cagr: number | null;
+  cagr_years: number;
+  roce: number | null;
+  borrowings: number | null;
+  equity: number | null;
+  debt_to_equity: number | null;
+  cash_conversion_3y: number | null;
+  cash_vs_profit: { period: string; cfo: number | null; pat: number | null }[];
+  ccc_trend: { period: string; days: number | null }[];
+}
+
+export interface Cited {
+  quote: string;
+  source: number;
+  page?: number | null;
+}
+
+export interface Analysis {
+  one_liner: string;
+  business: { summary: string; segments: { name: string; share_pct?: number | null; note: string }[] };
+  promises: ({ said_in: string; promise: string; outcome: string; verdict: "delivered" | "partly" | "missed" | "too_early" } & Cited)[];
+  guidance: ({ topic: string; statement: string } & Cited)[];
+  narrative_vs_numbers: { claim: string; reality: string; aligned: boolean }[];
+  bull: string[];
+  bear: string[];
+}
+
+export interface ResearchReport {
+  symbol: string;
+  name: string;
+  basis: string;
+  screener_url: string;
+  generated_at: string;
+  model: string;
+  metrics: Metrics;
+  analysis: Analysis;
+  sources: { label: string; url: string }[];
+}

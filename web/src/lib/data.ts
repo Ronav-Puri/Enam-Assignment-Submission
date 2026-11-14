@@ -59,3 +59,13 @@ export async function savePrefs(p: Prefs) {
     .upsert({ owner_id: auth.user.id, ...p, updated_at: new Date().toISOString() });
   if (error) throw error;
 }
+
+export async function loadWatchlists(): Promise<{ portfolio: Company[]; research: Company[] }> {
+  const { data, error } = await supabase.from("holdings").select("list, companies(symbol, name, sector)");
+  if (error) throw error;
+  const rows = (data ?? []).map((h) => ({ list: h.list as string, c: h.companies as unknown as Company }));
+  return {
+    portfolio: rows.filter((r) => r.list === "portfolio").map((r) => r.c),
+    research: rows.filter((r) => r.list === "research").map((r) => r.c),
+  };
+}
