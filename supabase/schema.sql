@@ -36,3 +36,12 @@ create table if not exists research (
 );
 alter table research enable row level security;
 create policy "logged-in users read research" on research for select to authenticated using (true);
+
+-- Every NSE-listed equity, for type-ahead search
+create table if not exists symbols (
+  symbol  text primary key,
+  name    text not null
+);
+alter table symbols enable row level security;
+create policy "logged-in users read symbols" on symbols for select to authenticated using (true);
+create index if not exists symbols_name_trgm on symbols using gin (name gin_trgm_ops);

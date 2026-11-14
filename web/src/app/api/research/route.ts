@@ -17,17 +17,32 @@ export async function POST(req: Request) {
 
   // Stream progress lines, then the result, as newline-delimited JSON
   const enc = new TextEncoder();
+  let open = true;
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (o: object) => controller.enqueue(enc.encode(JSON.stringify(o) + "\n"));
+      // If the phone disconnects, keep working: the finished report is saved to the database,
+      // so tapping Go again loads it instantly.
+      const send = (o: object) => {
+        if (!open) return;
+        try {
+          controller.enqueue(enc.encode(JSON.stringify(o) + "\n"));
+        } catch {
+          open = false;
+        }
+      };
       try {
         const report = await buildReport(symbol, !!body.refresh, (stage) => send({ stage }));
         send({ result: report });
       } catch (e) {
         send({ error: e instanceof Error ? e.message : String(e) });
       } finally {
-        controller.close();
+        if (open) {
+          try { controller.close(); } catch { /* already closed */ }
+        }
       }
+    },
+    cancel() {
+      open = false;
     },
   });
   return new Response(stream, {

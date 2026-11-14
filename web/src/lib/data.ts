@@ -89,3 +89,17 @@ export async function loadNetwork(): Promise<Network> {
     contacts: people.filter((p) => p.kind === "contact"),
   };
 }
+
+export async function searchSymbols(q: string): Promise<{ symbol: string; name: string }[]> {
+  const clean = q.replace(/[^A-Za-z0-9 &-]/g, "").trim();
+  if (clean.length < 2) return [];
+  const { data, error } = await supabase
+    .from("symbols")
+    .select("symbol, name")
+    .or(`symbol.ilike.${clean}%,name.ilike.%${clean}%`)
+    .limit(8);
+  if (error) throw error;
+  const up = clean.toUpperCase();
+  // symbols that start with what you typed come first
+  return (data ?? []).sort((a, b) => Number(!a.symbol.startsWith(up)) - Number(!b.symbol.startsWith(up)));
+}

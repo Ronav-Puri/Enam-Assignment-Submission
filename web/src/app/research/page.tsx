@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { loadNetwork, loadWatchlists } from "@/lib/data";
+import { loadNetwork, loadWatchlists, searchSymbols } from "@/lib/data";
 import type { Company, Network, ResearchReport as Report } from "@/lib/types";
 import { ResearchReport } from "@/components/ResearchReport";
 
@@ -14,14 +14,28 @@ export default function ResearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [net, setNet] = useState<Network | null>(null);
+  const [suggest, setSuggest] = useState<{ symbol: string; name: string }[]>([]);
+  const [typing, setTyping] = useState(false);
 
   useEffect(() => {
     loadNetwork().then(setNet).catch(() => setNet(null));
   }, []);
 
+  useEffect(() => {
+    if (!typing || query.trim().length < 2) {
+      setSuggest([]);
+      return;
+    }
+    const t = setTimeout(() => {
+      searchSymbols(query).then(setSuggest).catch(() => setSuggest([]));
+    }, 200);
+    return () => clearTimeout(t);
+  }, [query, typing]);
+
   async function run(symbol: string, refresh = false) {
     const s = symbol.trim().toUpperCase();
     if (!s || busy) return;
+    setTyping(false);
     setQuery(s);
     setBusy(true);
     setStages([]);
@@ -57,8 +71,10 @@ export default function ResearchPage() {
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
+            const msg = e instanceof Error ? e.message : String(e);
+      setError(/network|fetch|load failed/i.test(msg)
+        ? "Connection dropped (phones pause pages in the background). The analysis may still be finishing. Tap Go again in a minute."
+        : msg);
       setBusy(false);
     }
   }
@@ -75,7 +91,7 @@ export default function ResearchPage() {
       <form onSubmit={(e) => { e.preventDefault(); run(query); }} className="mt-5 flex gap-2">
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setTyping(true); }}
           placeholder="NSE symbol, e.g. TATAELXSI"
           autoCapitalize="characters"
           className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-[15px] uppercase placeholder:normal-case placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-white/30"
@@ -84,6 +100,20 @@ export default function ResearchPage() {
           {busy ? "…" : "Go"}
         </button>
       </form>
+
+      {typing && suggest.length > 0 && (
+        <ul className="mt-2 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
+          {suggest.map((s) => (
+            <li key={s.symbol}>
+              <button type="button" onClick={() => run(s.symbol)}
+                      className="flex w-full justify-between gap-3 px-4 py-2.5 text-left text-sm hover:bg-white/5">
+                <span className="text-neutral-100">{s.name}</span>
+                <span className="shrink-0 text-neutral-500">{s.symbol}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {!report && !busy && chips.length > 0 && (
         <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
