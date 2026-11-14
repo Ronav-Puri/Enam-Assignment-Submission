@@ -1,0 +1,38 @@
+name: Refresh market data
+
+on:
+  schedule:
+    - cron: "30 7 * * 1-5"    # 13:00 IST, weekdays
+    - cron: "30 13 * * 1-5"   # 19:00 IST, weekdays (after market close)
+  workflow_dispatch: {}       # adds a "Run workflow" button for manual runs
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL_LITE: ${{ secrets.GEMINI_MODEL_LITE }}
+      GEMINI_MODEL_FLASH: ${{ secrets.GEMINI_MODEL_FLASH }}
+      GEMINI_MODEL_PRO: ${{ secrets.GEMINI_MODEL_PRO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: data/requirements.txt
+      - run: pip install -r data/requirements.txt
+
+      - name: Prices
+        run: python data/scripts/fetch_prices.py --period 5d
+      - name: NSE announcements
+        continue-on-error: true
+        run: python data/scripts/fetch_announcements.py --days 3
+      - name: Label announcements
+        run: python data/scripts/classify_announcements.py
+      - name: Extract results and management changes
+        continue-on-error: true
+        run: python data/scripts/extract_details.py
