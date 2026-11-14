@@ -9,18 +9,28 @@ import { ResearchReport } from "@/components/ResearchReport";
 export default function ResearchPage() {
   const [query, setQuery] = useState("");
   const [lists, setLists] = useState<{ portfolio: Company[]; research: Company[] } | null>(null);
+  const [net, setNet] = useState<Network | null>(null);
+  const [suggest, setSuggest] = useState<{ symbol: string; name: string }[]>([]);
+  const [typing, setTyping] = useState(false);
   const [stages, setStages] = useState<string[]>([]);
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [net, setNet] = useState<Network | null>(null);
-  const [suggest, setSuggest] = useState<{ symbol: string; name: string }[]>([]);
-  const [typing, setTyping] = useState(false);
 
+  // Watchlists (for the chips) and the network (for "who to call"), loaded independently
   useEffect(() => {
-    loadNetwork().then(setNet).catch(() => setNet(null));
+    loadWatchlists()
+      .then(setLists)
+      .catch((e) => {
+        console.error("loadWatchlists failed", e);
+        setLists({ portfolio: [], research: [] });
+      });
+    loadNetwork()
+      .then(setNet)
+      .catch((e) => console.error("loadNetwork failed", e));
   }, []);
 
+  // Type-ahead suggestions, 200 ms after the user stops typing
   useEffect(() => {
     if (!typing || query.trim().length < 2) {
       setSuggest([]);
@@ -71,10 +81,13 @@ export default function ResearchPage() {
         }
       }
     } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e);
-      setError(/network|fetch|load failed/i.test(msg)
-        ? "Connection dropped (phones pause pages in the background). The analysis may still be finishing. Tap Go again in a minute."
-        : msg);
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(
+        /network|fetch|load failed/i.test(msg)
+          ? "Connection dropped (phones pause pages in the background). The analysis may still be finishing. Tap Go again in a minute."
+          : msg,
+      );
+    } finally {
       setBusy(false);
     }
   }
@@ -92,9 +105,10 @@ export default function ResearchPage() {
         <input
           value={query}
           onChange={(e) => { setQuery(e.target.value); setTyping(true); }}
-          placeholder="NSE symbol, e.g. TATAELXSI"
+          placeholder="Company or NSE symbol"
           autoCapitalize="characters"
-          className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-[15px] uppercase placeholder:normal-case placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-white/30"
+          autoComplete="off"
+          className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-[15px] placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-white/30"
         />
         <button disabled={busy} className="rounded-full bg-white px-5 font-medium text-neutral-950 disabled:opacity-50">
           {busy ? "…" : "Go"}
@@ -115,7 +129,7 @@ export default function ResearchPage() {
         </ul>
       )}
 
-      {!report && !busy && chips.length > 0 && (
+      {!report && !busy && !typing && chips.length > 0 && (
         <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
           {chips.map((c) => (
             <button key={c.symbol} onClick={() => run(c.symbol)}
