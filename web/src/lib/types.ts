@@ -129,3 +129,31 @@ export interface ResearchReport {
   analysis: Analysis;
   sources: { label: string; url: string }[];
 }
+
+// ---------- Network ----------
+export interface Stint {
+  org_name: string;
+  symbol: string | null;
+  kind: "work" | "education";
+  title: string | null;
+  start_year: number | null;
+  end_year: number | null;
+}
+
+export interface Contact {
+  id: string;
+  full_name: string;
+  headline: string | null;
+  city: string | null;
+  kind: string;
+  relationship: string | null;
+  closeness: number | null;
+  last_contacted: string | null;
+  expertise: string[];
+  stints: Stint[];
+}
+
+export interface Network {
+  self: Contact | null;
+  contacts: Contact[];
+}

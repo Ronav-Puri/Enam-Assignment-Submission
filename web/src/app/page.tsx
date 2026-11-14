@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { loadFilings, loadPortfolio, loadPrefs, loadSignals } from "@/lib/data";
-import type { Announcement, Company, Prefs, Signal } from "@/lib/types";
+import { loadFilings, loadNetwork, loadPortfolio, loadPrefs, loadSignals } from "@/lib/data";
+import type { Announcement, Company, Network, Prefs, Signal } from "@/lib/types";
+import { reconnects } from "@/lib/network";
 import { greeting } from "@/lib/format";
 import { FilingCard, FilingRow } from "@/components/FilingCard";
 import { MovesStrip } from "@/components/MovesStrip";
 import { WindowPicker } from "@/components/WindowPicker";
 import { Section, Skeleton } from "@/components/ui";
 
-type Data = { companies: Company[]; filings: Announcement[]; signals: Signal[]; prefs: Prefs };
+type Data = { companies: Company[]; filings: Announcement[]; signals: Signal[]; prefs: Prefs; net: Network };
 
 /** NSE sometimes files the same thing twice; keep the newest copy. */
 function dedupe(list: Announcement[]) {
@@ -36,12 +37,13 @@ export default function TodayPage() {
         const companies = await loadPortfolio();
         const symbols = companies.map((c) => c.symbol);
         const since = new Date(Date.now() - days * 86_400_000).toISOString();
-        const [filings, signals, prefs] = await Promise.all([
+        const [filings, signals, prefs, net] = await Promise.all([
           loadFilings(symbols, since),
           loadSignals(symbols),
           loadPrefs(),
+          loadNetwork(),
         ]);
-        if (!cancelled) setData({ companies, filings: dedupe(filings), signals, prefs });
+        if (!cancelled) setData({ companies, filings: dedupe(filings), signals, prefs, net });
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
@@ -68,12 +70,18 @@ export default function TodayPage() {
       worth: filings.filter((f) => imp(f) >= 2 && !alertIds.has(f.id)),
       minor: filings.filter((f) => imp(f) === 1),
       routine: filings.filter((f) => imp(f) === 0),
+      reconnect: reconnects(data.net, filings),
       asOf: signals[0]?.date,
     };
   }, [data]);
 
   const names = useMemo(
     () => Object.fromEntries((data?.companies ?? []).map((c) => [c.symbol, c.name])),
+    [data],
+  );
+
+  const sectors = useMemo(
+    () => Object.fromEntries((data?.companies ?? []).map((c) => [c.symbol, c.sector])),
     [data],
   );
 
@@ -99,7 +107,7 @@ export default function TodayPage() {
           >
             <MovesStrip moves={view.moves} prefs={data.prefs} />
             {view.alerts.map((f) => (
-              <FilingCard key={f.id} f={f} name={names[f.symbol] ?? f.symbol} />
+              <FilingCard key={f.id} f={f} name={names[f.symbol] ?? f.symbol} net={data.net} sector={sectors[f.symbol]} />
             ))}
             {view.alerts.length === 0 && view.moves.length === 0 && (
               <p className="text-sm text-neutral-500">Nothing crossed your thresholds in this window.</p>
@@ -109,7 +117,24 @@ export default function TodayPage() {
           {view.worth.length > 0 && (
             <Section title="Worth a look">
               {view.worth.map((f) => (
-                <FilingCard key={f.id} f={f} name={names[f.symbol] ?? f.symbol} />
+                <FilingCard key={f.id} f={f} name={names[f.symbol] ?? f.symbol} net={data.net} sector={sectors[f.symbol]} />
+              ))}
+            </Section>
+          )}
+
+          {view.reconnect.length > 0 && (
+            <Section title="Reconnect" hint="a natural reason to get in touch">
+              {view.reconnect.map((r) => (
+                <div key={r.contact.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-neutral-100">{r.contact.full_name}</span>
+                    <span className="text-xs text-amber-300/80">{r.months} months since you spoke</span>
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-400">
+                    {r.current ? "Works at" : "Used to work at"} {r.org}, which just filed:{" "}
+                    <span className="text-neutral-200">{r.filing.summary ?? r.filing.subject}</span>
+                  </p>
+                </div>
               ))}
             </Section>
           )}

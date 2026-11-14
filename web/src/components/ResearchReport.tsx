@@ -1,6 +1,9 @@
 import type { ResearchReport as Report } from "@/lib/types";
 import { num, pctText } from "@/lib/format";
 import { Section } from "./ui";
+import type { Network } from "@/lib/types";
+import { whoToCall } from "@/lib/network";
+import { WhoToCall } from "./WhoToCall";
 
 const VERDICT: Record<string, { label: string; cls: string }> = {
   delivered: { label: "Delivered", cls: "bg-emerald-500/15 text-emerald-300" },
@@ -24,7 +27,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
-export function ResearchReport({ r }: { r: Report }) {
+export function ResearchReport({ r, net, sector }: { r: Report; net?: Network | null; sector?: string | null }) {
   const m = r.metrics;
   const a = r.analysis;
   const src = (i: number, page?: number | null) => {
@@ -46,6 +49,9 @@ export function ResearchReport({ r }: { r: Report }) {
         <div className="text-xs text-neutral-500">{r.symbol} · {r.basis}</div>
         <h2 className="text-2xl font-semibold tracking-tight">{r.name}</h2>
         <p className="mt-2 text-neutral-300">{a.one_liner}</p>
+        {net && (
+          <WhoToCall suggestions={whoToCall(net, { symbol: r.symbol, sector })} title="Who to call before you decide" />
+        )}
       </div>
 
       <Section title="Promised vs delivered"

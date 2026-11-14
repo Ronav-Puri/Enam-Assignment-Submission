@@ -1,5 +1,13 @@
 import { supabase } from "./supabase";
-import { DEFAULT_PREFS, type Announcement, type Company, type Prefs, type Signal } from "./types";
+import {
+  DEFAULT_PREFS,
+  type Announcement,
+  type Company,
+  type Contact,
+  type Network,
+  type Prefs,
+  type Signal,
+} from "./types";
 
 export async function loadPortfolio(): Promise<Company[]> {
   const { data, error } = await supabase
@@ -67,5 +75,17 @@ export async function loadWatchlists(): Promise<{ portfolio: Company[]; research
   return {
     portfolio: rows.filter((r) => r.list === "portfolio").map((r) => r.c),
     research: rows.filter((r) => r.list === "research").map((r) => r.c),
+  };
+}
+
+export async function loadNetwork(): Promise<Network> {
+  const { data, error } = await supabase
+    .from("persons")
+    .select("id, full_name, headline, city, kind, relationship, closeness, last_contacted, expertise, stints(org_name, symbol, kind, title, start_year, end_year)");
+  if (error) throw error;
+  const people = (data ?? []) as unknown as Contact[];
+  return {
+    self: people.find((p) => p.kind === "self") ?? null,
+    contacts: people.filter((p) => p.kind === "contact"),
   };
 }

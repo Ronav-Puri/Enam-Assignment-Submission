@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { loadWatchlists } from "@/lib/data";
-import type { Company, ResearchReport as Report } from "@/lib/types";
+import { loadNetwork, loadWatchlists } from "@/lib/data";
+import type { Company, Network, ResearchReport as Report } from "@/lib/types";
 import { ResearchReport } from "@/components/ResearchReport";
 
 export default function ResearchPage() {
@@ -13,9 +13,10 @@ export default function ResearchPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [net, setNet] = useState<Network | null>(null);
 
   useEffect(() => {
-    loadWatchlists().then(setLists).catch(() => setLists({ portfolio: [], research: [] }));
+    loadNetwork().then(setNet).catch(() => setNet(null));
   }, []);
 
   async function run(symbol: string, refresh = false) {
@@ -110,7 +111,11 @@ export default function ResearchPage() {
 
       {report && (
         <>
-          <ResearchReport r={report} />
+          <ResearchReport
+            r={report}
+            net={net}
+            sector={chips.find((c) => c.symbol === report.symbol)?.sector ?? null}
+          />
           <button onClick={() => run(report.symbol, true)} className="mt-6 w-full text-sm text-neutral-500">
             Refresh analysis
           </button>
