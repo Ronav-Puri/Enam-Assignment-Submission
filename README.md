@@ -52,7 +52,7 @@ flowchart LR
 - **Prices:** `yfinance` end-of-day. A database view (`price_signals`) computes daily % change and volume ÷ 20-day average; the app applies each investor's thresholds.
 - **Filings:** NSE's announcements API (BSE blocks scripted access), deduplicated by NSE's own id. Labelled once, never re-labelled.
 - **Fundamentals:** screener.in's standardised tables (from company filings) for numbers; earnings-call transcripts for management's words. No news, broker notes or model background knowledge.
-- **People:** contacts and career histories (`persons`, `stints`). Names in filings are matched to the network by employer, years, unit and college.
+- **People:** contacts and career histories (`persons`, `stints`). Names in filings are matched by employer, business unit and college; contact-to-contact links also use overlapping years. Starting point: the investor’s own career (colleges, employers, years) plus a contact list with each person’s employers, titles, tenures, colleges, how they know them, closeness and when they last spoke.
 
 ## Models and agents
 | Step | Model (tier) | Why |
@@ -72,9 +72,9 @@ interest earned and profit attributable to shareholders: a definition difference
 ## Security and privacy
 - **Row-level security:** contacts, careers, holdings and alert rules are readable only by their owner's session; the database enforces this, not app code.
 - **Secrets stay on the server:** the secret key and Gemini key live in Vercel and GitHub secrets; the browser only has the publishable key. The demo password never reaches the browser.
-- **Quota protection:** Research requires a signed-in session.
+- **Quota protection:** Research requires a signed-in session. (in this demo anyone can sign in, so the cache is the main guard; production would add per-user rate limits).
 - **India network resilience:** browser traffic goes through the app's own domain (`/sb` proxy), because some Indian ISPs have blocked `*.supabase.co`.
-- **Real deployment:** contacts imported only with the investor's consent (e.g. their own LinkedIn export), enrichment through a licensed provider, a retention limit on enriched profiles, delete-my-data, and per-user encryption of notes.
+- **Real deployment**: contacts are imported only with the investor’s consent (e.g. their own LinkedIn export). Enrichment goes through a licensed provider, and enriched profiles of people outside the network are refreshed or deleted after 90 days. Contacts are deleted immediately when the investor removes them or closes the account. Nothing personal is ever sent to the model except names and career facts needed for a match.
 
 **Data note:** the demo network (31 people) is **synthetic**. No profiles were scraped.
 
