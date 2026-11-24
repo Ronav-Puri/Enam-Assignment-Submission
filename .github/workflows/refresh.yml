@@ -36,3 +36,6 @@ jobs:
       - name: Extract results and management changes
         continue-on-error: true
         run: python data/scripts/extract_details.py
+      - name: Label announcements
+        continue-on-error: true
+        run: python data/scripts/classify_announcements.py
